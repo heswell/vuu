@@ -4,7 +4,6 @@ import { execCallback } from "./utils.mjs";
 const packages = [
   "vuu-protocol-types",
   "vuu-utils",
-  "vuu-data-ag-grid",
   "vuu-theme",
   "vuu-data",
   "datagrid-parsers",
