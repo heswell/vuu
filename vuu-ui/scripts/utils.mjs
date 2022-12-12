@@ -103,7 +103,6 @@ export const assertFolderExists = (folderName, exitIfFalse) => {
 
 export const writeMetaFile = async (meta, outdir) =>
   new Promise((resolve, reject) => {
-    console.log(`write bundle metafile`);
     fs.writeFile(
       `${outdir}/meta.json`,
       JSON.stringify(meta, null, 2),
