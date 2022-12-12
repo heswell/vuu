@@ -1,5 +1,4 @@
-import { exec } from "child_process";
-import { execCallback } from "./utils.mjs";
+import { execWait } from "./utils.mjs";
 
 const packages = [
   "vuu-protocol-types",
@@ -15,12 +14,11 @@ const packages = [
   "vuu-shell",
 ];
 
-function publishPackage(packageName) {
-  exec(
+async function publishPackage(packageName) {
+  await execWait(
     "npm publish --registry https://registry.npmjs.org --access-public",
-    { cwd: `packages/${packageName}` },
-    execCallback
+    `packages/${packageName}`
   );
 }
 
-packages.forEach((packageName) => publishPackage(packageName));
+await Promise.all(packages.map((packageName) => publishPackage(packageName)));
