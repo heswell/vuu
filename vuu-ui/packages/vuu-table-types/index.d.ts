@@ -554,7 +554,7 @@ export declare type CellPos = [number, number];
 
 /**
  * A callback prop, called when a custom row action is invoked. This will
- * typically be from a buttom rendered within a row cell
+ * typically be from a button rendered within a row cell
  */
 export declare type RowActionHandler<T extends string = string> = (
   rowActionId: T,

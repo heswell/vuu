@@ -1,0 +1,23 @@
+.ContributionValueCell {
+    align-items: center;;
+    cursor: pointer;
+    display: flex;
+    gap: var(--salt-spacing-200);
+
+    .vuuIcon {
+        --vuu-icon-top: -2px;
+        visibility: hidden;
+    }
+
+    &.ContributionValueCell-omit {
+        .vuuIcon {
+            visibility: visible;
+        }
+    }
+
+    &:hover {
+        .vuuIcon {
+            visibility: visible;
+        }
+    }
+}
