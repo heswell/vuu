@@ -82,6 +82,11 @@ export interface TableProps
    * A react function component that will be rendered if there are no rows to display
    */
   EmptyDisplay?: ComponentType;
+  /**
+   * A Custom Row renderer that will replace the defaukt Row. This component will then
+   * be entirely responsible for rendering all rows. A current restriction is that all
+   * rows must be same height.
+   */
   Row?: FC<RowProps>;
   /**
    * Allow a block of cells to be selected. Typically to be copied.
@@ -348,6 +353,8 @@ const TableCore = ({
   rowHeight: number;
   size: MeasuredSize;
 }) => {
+  console.log(`TableCore rowHeight ${rowHeight}`);
+
   const id = useId(idProp);
   const {
     allRowsSelected,

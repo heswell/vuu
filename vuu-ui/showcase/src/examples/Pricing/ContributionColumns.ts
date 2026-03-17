@@ -108,3 +108,18 @@ export const pos10Columns = clients.reduce<ColumnDescriptor[]>(
   },
   [baseColumns.series],
 );
+
+export const allColumns = clients.reduce<ColumnDescriptor[]>(
+  (columns, client) => {
+    ["neg10", "neg25", "delta50", "pos25", "pos10"].forEach((delta) => {
+      const { name, ...rest } = baseColumns[delta];
+      columns.push({
+        name: `${client}_${name}`,
+        label: client,
+        ...rest,
+      });
+    });
+    return columns;
+  },
+  [baseColumns.series],
+);

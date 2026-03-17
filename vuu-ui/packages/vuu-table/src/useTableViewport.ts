@@ -120,6 +120,7 @@ export const useTableViewport = ({
 
   const [getRowOffset, getRowAtPosition, isVirtualScroll] =
     useMemo<RowPositioning>(() => {
+      console.log(`getRowOffset using rowHeight ${rowHeight}`);
       if (virtualisedExtent) {
         const [_getRowOffset, getRowAtPosition, _isVirtual] =
           virtualRowPositioning(rowHeight, virtualisedExtent, pctScrollTopRef);

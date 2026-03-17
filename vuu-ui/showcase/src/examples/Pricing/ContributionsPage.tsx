@@ -1,23 +1,29 @@
 import { ToggleButton, ToggleButtonGroup } from "@salt-ds/core";
+import { pricingSchemas } from "@vuu-ui/vuu-data-test";
+import { Table } from "@vuu-ui/vuu-table";
+import {
+  ColumnDescriptor,
+  RowProps,
+  TableConfig,
+} from "@vuu-ui/vuu-table-types";
+import { registerComponent, toColumnName, useData } from "@vuu-ui/vuu-utils";
+import { FC, SyntheticEvent, useCallback, useMemo, useState } from "react";
+import {
+  delta50Columns,
+  neg10Columns,
+  neg25Columns,
+  pos10Columns,
+  pos25Columns,
+  allColumns,
+} from "./ContributionColumns";
+import { ContributionValueCell } from "./ContributionValueCell";
+import { MultiDeltaRow } from "./MultiDeltaRow";
+
+import "./ContributionsPage.css";
 
 const classBase = "ContributionsPage";
 
-import "./ContributionsPage.css";
-import { SyntheticEvent, useCallback, useMemo, useState } from "react";
-import { registerComponent, toColumnName, useData } from "@vuu-ui/vuu-utils";
-import { pricingSchemas } from "@vuu-ui/vuu-data-test";
-import { ColumnDescriptor, TableConfig } from "@vuu-ui/vuu-table-types";
-import { Table } from "@vuu-ui/vuu-table";
-import {
-  neg10Columns,
-  neg25Columns,
-  delta50Columns,
-  pos25Columns,
-  pos10Columns,
-} from "./ContributionColumns";
-import { ContributionValueCell } from "./ContributionValueCell";
-
-type DeltaValue = "-10" | "-25" | "50" | "+25" | "+10";
+type DeltaValue = "-10" | "-25" | "50" | "+25" | "+10" | "all";
 
 registerComponent(
   "example.contribution-value",
@@ -31,6 +37,7 @@ const deltaColumns: Record<DeltaValue, ColumnDescriptor[]> = {
   "50": delta50Columns,
   "+25": pos25Columns,
   "+10": pos10Columns,
+  all: allColumns,
 };
 
 export const ContributionsPage = () => {
@@ -38,10 +45,22 @@ export const ContributionsPage = () => {
 
   const [delta, setDelta] = useState<DeltaValue>("50");
   const [product, setProduct] = useState<string>("CA");
+  const [rowHeight, setRowHeight] = useState(36);
+  const [CustomRow, setCustomRow] = useState<FC<RowProps> | undefined>(
+    undefined,
+  );
   const onChangeDelta = useCallback(
     (evt: SyntheticEvent<HTMLButtonElement>) => {
       const toggleButton = evt.target as HTMLButtonElement;
-      setDelta(toggleButton.value as DeltaValue);
+      const deltaValue = toggleButton.value as DeltaValue;
+      setDelta(deltaValue);
+      if (deltaValue === "all") {
+        setCustomRow(() => MultiDeltaRow);
+        setRowHeight(100);
+      } else {
+        setCustomRow(undefined);
+        setRowHeight(36);
+      }
     },
     [],
   );
@@ -98,10 +117,17 @@ export const ContributionsPage = () => {
           <ToggleButton value="50">50</ToggleButton>
           <ToggleButton value="+25">+25</ToggleButton>
           <ToggleButton value="+10">+10</ToggleButton>
+          <ToggleButton value="all">All</ToggleButton>
         </ToggleButtonGroup>
       </div>
       <div className={`${classBase}-tableContainer`}>
-        <Table config={config} dataSource={dataSource} selectionModel="none" />
+        <Table
+          Row={CustomRow}
+          config={config}
+          dataSource={dataSource}
+          rowHeight={rowHeight}
+          selectionModel="none"
+        />
       </div>
       <div className={`${classBase}-tableFooter`}></div>
     </div>
