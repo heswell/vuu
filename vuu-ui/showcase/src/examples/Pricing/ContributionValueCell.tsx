@@ -8,14 +8,10 @@ import { useTableContext } from "@vuu-ui/vuu-table-extras";
 
 const classBase = "ContributionValueCell";
 
-export const ContributionValueCell = ({
-  column,
-  columnMap,
-  row,
-}: TableCellProps) => {
+export const ContributionValueCell = ({ column, dataRow }: TableCellProps) => {
   const { name, valueFormatter } = column;
-  const value = row[columnMap[name]];
-  const isOmitted = row[columnMap[`${name}_edited`]];
+  const value = dataRow[name];
+  const isOmitted = dataRow[`${name}_edited`];
   const className = cx(classBase, {});
 
   const { dataSource } = useTableContext();
@@ -27,11 +23,11 @@ export const ContributionValueCell = ({
       params: {
         column: `${column.name}_edited`,
         data: !isOmitted,
-        key: row[6],
+        key: dataRow.key,
       },
     });
     console.log({ rpcResponse });
-  }, [column.name, dataSource, row]);
+  }, [dataSource, column.name, isOmitted, dataRow.key]);
 
   return (
     <div
