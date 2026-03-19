@@ -37,7 +37,7 @@ const deltaColumns: Record<DeltaValue, ColumnDescriptor[]> = {
   "50": delta50Columns,
   "+25": pos25Columns,
   "+10": pos10Columns,
-  all: allColumns,
+  all: delta50Columns,
 };
 
 export const ContributionsPage = () => {

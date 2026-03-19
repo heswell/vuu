@@ -134,12 +134,19 @@ function DataRowImpl(data: VuuDataRow, columnMap: DataRowColumnMap): DataRow {
     );
   };
 
+  const stringifier = () => {
+    return "DataRow";
+  };
+
   const DataRowOperations: DataRowOperations = {
     hasColumn: (name: string) => columnMap[name] !== undefined,
   };
 
   return new Proxy(target, {
     get(_obj, prop: string | symbol) {
+      if (prop === "isDataRow") {
+        return true;
+      }
       if (typeof prop === "symbol") {
         if (prop === dataRowSymbol) return true;
         // TODO what does React use this for
@@ -147,7 +154,7 @@ function DataRowImpl(data: VuuDataRow, columnMap: DataRowColumnMap): DataRow {
       } else if (prop === "toJSON") {
         return jsonSerializer;
       } else if (prop === "toString") {
-        return "DataRow";
+        return stringifier;
       } else if (prop === "$$typeof") {
         // some react internal weirdness
         return undefined;
