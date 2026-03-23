@@ -1,7 +1,9 @@
 import { RowProps } from "@vuu-ui/vuu-table-types";
+import { Row } from "@vuu-ui/vuu-table/src/Row";
 
 import "./MultiDeltaRow.css";
-import { Row } from "@vuu-ui/vuu-table/src/Row";
+
+const classBase = "MultiDeltaRow";
 
 export const MultiDeltaRow = ({
   "aria-rowindex": ariaRowIndex,
@@ -14,11 +16,11 @@ export const MultiDeltaRow = ({
   return (
     <div
       aria-rowindex={ariaRowIndex}
-      className="vuuTableRow MultiDeltaRow"
+      className={`vuuTableRow ${classBase}`}
       role="row"
       style={{ top: offset }}
     >
-      <Row columns={columns} dataRow={dataRow} offset={0} />
+      <Row columns={columns} dataRow={dataRow} offset={0} searchPattern="" />
     </div>
   );
 };
