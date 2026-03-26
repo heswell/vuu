@@ -1,14 +1,22 @@
-import { RpcMenuService, VuuModule } from "../core/module/VuuModule";
+import {
+  RpcMenuService,
+  RpcService,
+  ServiceHandler,
+  VuuModule,
+} from "../core/module/VuuModule";
 import { buildDataColumnMap, Table } from "../Table";
 import tableContainer from "../core/table/TableContainer";
 import { TableSchema } from "@vuu-ui/vuu-data-types";
-
 import contributions from "./data/contributions";
 import clientPivotedContributions from "./data/clientPivotedContributions";
-
 import { buildClientColumns } from "./schemas/schema-utils";
 
 export type PricingTableName = "contributions" | "client_pivot_contributions";
+
+const undefinedTables = {
+  contributions: undefined,
+  client_pivot_contributions: undefined,
+};
 
 const MODULE = "PRICING";
 
@@ -63,11 +71,72 @@ class PricingModule extends VuuModule<PricingTableName> {
     super(MODULE);
   }
 
+  omitAllDeltasForClientSeries: ServiceHandler = async (rpcRequest) => {
+    if (rpcRequest.context.type === "VIEWPORT_CONTEXT") {
+      const { viewPortId } = rpcRequest.context;
+      const { client, data, key } = rpcRequest.params;
+
+      const { dataSource } = this.getSubscriptionByViewport(viewPortId);
+      if (dataSource.table) {
+        const targetTable =
+          this.tables[dataSource.table.table as PricingTableName];
+        if (targetTable) {
+          console.log(`update table`);
+
+          targetTable.update(
+            key as string,
+            `${client}_delta_minus_10_edited`,
+            data,
+          );
+          targetTable.update(
+            key as string,
+            `${client}_delta_minus_25_edited`,
+            data,
+          );
+          targetTable.update(key as string, `${client}_delta_50_edited`, data);
+          targetTable.update(
+            key as string,
+            `${client}_delta_plus_25_edited`,
+            data,
+          );
+          targetTable.update(
+            key as string,
+            `${client}_delta_plus_10_edited`,
+            data,
+          );
+        }
+      }
+
+      console.log(
+        `omitAllDeltasForClientSeries viewport ${viewPortId} ${client} ${key}`,
+      );
+      return {
+        type: "SUCCESS_RESULT",
+        data: undefined,
+      };
+    }
+
+    return {
+      type: "ERROR_RESULT",
+      errorMessage: "didn't work",
+    };
+  };
+
   get menus() {
     return undefined;
   }
-  get services() {
-    return undefined;
+  get services():
+    | Record<PricingTableName, RpcService[] | undefined>
+    | undefined {
+    return {
+      ...undefinedTables,
+      client_pivot_contributions: [
+        {
+          rpcName: "omitAllDeltas",
+          service: this.omitAllDeltasForClientSeries,
+        },
+      ],
+    };
   }
 
   get menuServices():

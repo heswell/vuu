@@ -1,18 +1,22 @@
 import { TableCellProps } from "@vuu-ui/vuu-table-types";
 import cx from "clsx";
-
-import "./ContributionValueCell.css";
 import { Icon } from "@vuu-ui/vuu-ui-controls";
 import { MouseEventHandler, useCallback } from "react";
 import { useTableContext } from "@vuu-ui/vuu-table-extras";
 
+import "./ContributionValueCell.css";
+
 const classBase = "ContributionValueCell";
 
-export const ContributionValueCell = ({ column, dataRow }: TableCellProps) => {
+export const ContributionValueCell = ({
+  className: classNameProp,
+  column,
+  dataRow,
+}: TableCellProps) => {
   const { name, valueFormatter } = column;
   const value = dataRow[name];
   const isOmitted = dataRow[`${name}_edited`];
-  const className = cx(classBase, {});
+  const className = cx(classBase, classNameProp);
 
   const { dataSource } = useTableContext();
 
@@ -38,7 +42,7 @@ export const ContributionValueCell = ({ column, dataRow }: TableCellProps) => {
       tabIndex={-1}
     >
       <Icon name="cross-circle" />
-      <span>{valueFormatter(value)}</span>
+      <span className={`${classBase}-value`}>{valueFormatter(value)}</span>
     </div>
   );
 };

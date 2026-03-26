@@ -1,9 +1,9 @@
 .ContributionValueCell {
-    align-items: center;;
+    align-items: center;
     cursor: pointer;
     display: flex;
     gap: var(--salt-spacing-200);
-
+    justify-content: flex-end;
     .vuuIcon {
         --vuu-icon-top: -2px;
         visibility: hidden;
@@ -20,4 +20,5 @@
             visibility: visible;
         }
     }
+
 }

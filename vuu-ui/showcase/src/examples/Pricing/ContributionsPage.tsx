@@ -14,7 +14,6 @@ import {
   neg25Columns,
   pos10Columns,
   pos25Columns,
-  allColumns,
 } from "./ContributionColumns";
 import { ContributionValueCell } from "./ContributionValueCell";
 import { MultiDeltaRow } from "./MultiDeltaRow";
@@ -56,7 +55,7 @@ export const ContributionsPage = () => {
       setDelta(deltaValue);
       if (deltaValue === "all") {
         setCustomRow(() => MultiDeltaRow);
-        setRowHeight(100);
+        setRowHeight(222);
       } else {
         setCustomRow(undefined);
         setRowHeight(36);

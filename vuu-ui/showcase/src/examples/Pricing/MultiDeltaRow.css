@@ -1,9 +1,60 @@
 .MultiDeltaRow {
-    border-bottom: solid 1px var(--salt-separable-secondary-borderColor);
-
+    border-bottom: solid 3px lightgray;
 
     .vuuTableCell {
         flex-direction: column;
         line-height: 32px;
+        padding-right: 24px;
+    }
+
+    .MultiDeltaHeader {
+        height: 32px !important;
+
+        .StaticTextCell {
+            padding: 0;
+        }
+        .DeltaHeader {
+            align-items: center;
+            border-bottom: solid lightgray 1px;
+            display: flex;
+            gap: var(--salt-spacing-200);
+            justify-content: flex-end;
+            line-height: 30px;
+            padding-right: 24px;
+
+            .vuuIcon {
+                --vuu-icon-top: -2px;
+                visibility: hidden;
+            }
+
+            &:hover {
+                .vuuIcon {
+                    visibility: visible;
+                }
+            }
+
+            &.DeltaHeader-omit {
+                .vuuIcon {
+                    visibility: visible;
+                }
+            }
+
+        }
+
+
+    }
+
+    .MultiDeltaLabel {
+        height: 37px;
+        text-align: end;
+    }
+
+    .MultiDeltaData {
+        height: calc(var(--row-height) - 35px) !important;
+    }
+
+    .MultiDeltaCell {
+        height: 37px;
+        justify-content: flex-end;
     }
 }

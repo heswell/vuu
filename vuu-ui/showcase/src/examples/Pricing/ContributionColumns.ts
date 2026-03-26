@@ -5,9 +5,11 @@ import {
 
 const clients = ["ABC", "DEF", "GHK", "IJK", "LMN", "OPQ", "RST", "UVW", "XYZ"];
 
-const valueType: DataValueTypeDescriptor = {
+const contributionValueColumnType: DataValueTypeDescriptor = {
   formatting: {
     alignOnDecimals: true,
+    decimals: 2,
+    zeroPad: true,
   },
   name: "number",
   renderer: { name: "example.contribution-value" },
@@ -20,31 +22,31 @@ const baseColumns: Record<string, ColumnDescriptor> = {
     name: "delta_minus_10",
     serverDataType: "double",
     width: 100,
-    type: valueType,
+    type: contributionValueColumnType,
   },
   neg25: {
     name: "delta_minus_25",
     serverDataType: "double",
     width: 100,
-    type: valueType,
+    type: contributionValueColumnType,
   },
   delta50: {
     name: "delta_50",
     serverDataType: "double",
     width: 100,
-    type: valueType,
+    type: contributionValueColumnType,
   },
   pos25: {
     name: "delta_plus_25",
     serverDataType: "double",
     width: 100,
-    type: valueType,
+    type: contributionValueColumnType,
   },
   pos10: {
     name: "delta_plus_10",
     serverDataType: "double",
     width: 100,
-    type: valueType,
+    type: contributionValueColumnType,
   },
 };
 

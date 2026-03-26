@@ -319,7 +319,7 @@ export interface ColumnDescriptorCustomRenderer
 }
 
 /** This is an internal description of a Column that extends the public
- * definitin with internal state values. */
+ * definition with internal state values. */
 export interface RuntimeColumnDescriptor extends ColumnDescriptor {
   align?: "left" | "right";
   ariaColIndex: number;

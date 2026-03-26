@@ -108,10 +108,6 @@ export class SimulModule extends VuuModule<SimulTableName> {
     return this.#schemas;
   }
 
-  get editServices() {
-    return undefined;
-  }
-
   get menuServices():
     | Record<SimulTableName, RpcMenuService[] | undefined>
     | undefined {
