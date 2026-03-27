@@ -14,7 +14,8 @@ export const ContributionValueCell = ({
   dataRow,
 }: TableCellProps) => {
   const { name, valueFormatter } = column;
-  const value = dataRow[name];
+  const value = dataRow[name] as number;
+  const prevValue = dataRow[`${name}_prev`] as number;
   const isOmitted = dataRow[`${name}_edited`];
   const className = cx(classBase, classNameProp);
 
@@ -37,6 +38,8 @@ export const ContributionValueCell = ({
     <div
       className={cx(className, {
         [`${classBase}-omit`]: isOmitted,
+        [`${classBase}-up`]: value > prevValue,
+        [`${classBase}-down`]: value < prevValue,
       })}
       onClick={onClick}
       tabIndex={-1}

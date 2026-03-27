@@ -7,9 +7,12 @@ import {
 import { buildDataColumnMap, Table } from "../Table";
 import tableContainer from "../core/table/TableContainer";
 import { TableSchema } from "@vuu-ui/vuu-data-types";
-import contributions from "./data/contributions";
-import clientPivotedContributions from "./data/clientPivotedContributions";
 import { buildClientColumns } from "./schemas/schema-utils";
+import { VUU_TIMESTAMP_COLUMNS } from "../common/vuuTimestampColumns";
+import {
+  addContributionToPivotTable,
+  loadInitialContributions,
+} from "./data/contributions";
 
 export type PricingTableName = "contributions" | "client_pivot_contributions";
 
@@ -33,6 +36,7 @@ class PricingModule extends VuuModule<PricingTableName> {
         { name: "delta_50", serverDataType: "double" },
         { name: "delta_plus_25", serverDataType: "double" },
         { name: "delta_plus_10", serverDataType: "double" },
+        ...VUU_TIMESTAMP_COLUMNS,
       ],
       key: "id",
       table: { module: MODULE, table: "contributions" },
@@ -42,12 +46,31 @@ class PricingModule extends VuuModule<PricingTableName> {
         { name: "id", serverDataType: "string" },
         { name: "productCode", serverDataType: "string" },
         { name: "series", serverDataType: "string" },
+        ...buildClientColumns(
+          [
+            { name: "delta_minus_10", serverDataType: "double" },
+            { name: "delta_minus_25", serverDataType: "double" },
+            { name: "delta_50", serverDataType: "double" },
+            { name: "delta_plus_25", serverDataType: "double" },
+            { name: "delta_plus_10", serverDataType: "double" },
+          ],
+          true,
+        ),
+        // Previous days values
         ...buildClientColumns([
-          { name: "delta_minus_10", serverDataType: "double" },
-          { name: "delta_minus_25", serverDataType: "double" },
-          { name: "delta_50", serverDataType: "double" },
-          { name: "delta_plus_25", serverDataType: "double" },
-          { name: "delta_plus_10", serverDataType: "double" },
+          { name: "delta_minus_10_prev", serverDataType: "double" },
+          { name: "delta_minus_25_prev", serverDataType: "double" },
+          { name: "delta_50_prev", serverDataType: "double" },
+          { name: "delta_plus_25_prev", serverDataType: "double" },
+          { name: "delta_plus_10_prev", serverDataType: "double" },
+        ]),
+        // candidate entries, subsequent submissions, not yet accepted
+        ...buildClientColumns([
+          { name: "delta_minus_10_next", serverDataType: "double" },
+          { name: "delta_minus_25_next", serverDataType: "double" },
+          { name: "delta_50_next", serverDataType: "double" },
+          { name: "delta_plus_25_next", serverDataType: "double" },
+          { name: "delta_plus_10_next", serverDataType: "double" },
         ]),
       ],
       key: "id",
@@ -58,17 +81,27 @@ class PricingModule extends VuuModule<PricingTableName> {
   #tables: Record<PricingTableName, Table> = {
     contributions: tableContainer.createTable(
       this.#schemas.contributions,
-      contributions,
+      [],
       buildDataColumnMap(this.#schemas, "contributions"),
     ),
     client_pivot_contributions: tableContainer.createTable(
       this.#schemas.client_pivot_contributions,
-      clientPivotedContributions,
+      [],
       buildDataColumnMap(this.#schemas, "client_pivot_contributions"),
     ),
   };
   constructor() {
     super(MODULE);
+
+    const {
+      contributions: contributionsTable,
+      client_pivot_contributions: pivotTable,
+    } = this.tables;
+    contributionsTable.on("insert", (row) => {
+      addContributionToPivotTable(pivotTable, row);
+    });
+
+    loadInitialContributions(contributionsTable);
   }
 
   omitAllDeltasForClientSeries: ServiceHandler = async (rpcRequest) => {

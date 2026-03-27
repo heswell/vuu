@@ -15,6 +15,12 @@
         }
     }
 
+    &.ContributionValueCell-up {
+        color: green;
+    }
+    &.ContributionValueCell-down {
+        color: red;
+    }
     &:hover {
         .vuuIcon {
             visibility: visible;

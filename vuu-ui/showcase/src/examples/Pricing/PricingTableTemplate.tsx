@@ -55,7 +55,7 @@ export const PricingTable = ({
         columnLayout,
         columns:
           columnsProp ??
-          applyDefaultColumnConfig(tableSchema, getDefaultColumnConfig),
+          applyDefaultColumnConfig(tableSchema, getDefaultColumnConfig, true),
         rowClassNameGenerators,
         rowSeparators: true,
         zebraStripes: true,

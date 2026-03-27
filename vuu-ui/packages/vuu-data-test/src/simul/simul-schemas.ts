@@ -1,10 +1,6 @@
-import { SchemaColumn, TableSchema } from "@vuu-ui/vuu-data-types";
+import { TableSchema } from "@vuu-ui/vuu-data-types";
 import { VuuTable } from "@vuu-ui/vuu-protocol-types";
-
-const VUU_TIMESTAMP_COLUMNS: SchemaColumn[] = [
-  { name: "vuuCreatedTimestamp", serverDataType: "epochtimestamp" },
-  { name: "vuuUpdatedTimestamp", serverDataType: "epochtimestamp" },
-];
+import { VUU_TIMESTAMP_COLUMNS } from "../common/vuuTimestampColumns";
 
 export type SimulTableName =
   | "instruments"
