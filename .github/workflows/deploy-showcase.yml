@@ -1,0 +1,53 @@
+name: "Deploy Showcase to Cloudflare Pages"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "vuu-ui/**"
+      - ".github/workflows/deploy-showcase.yml"
+
+concurrency:
+  group: deploy-showcase-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    # Only deploy from the fork that owns the Cloudflare Pages project
+    if: github.repository == 'heswell/vuu'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Node & dependencies
+        uses: ./.github/actions/setup-vuu-ui
+
+      - name: Build showcase
+        run: cd ./vuu-ui && npm run showcase:build
+
+      # Mirror the rewrites performed by the local showcase server (showcase-build.ts).
+      # Unmatched routes fall back to index.html automatically (SPA mode).
+      - name: Add Cloudflare Pages redirects
+        run: |
+          cat > ./vuu-ui/showcase/.showcase/prod/_redirects <<'EOF'
+          /themes/*   /showcase/src/themes/:splat   200
+          /features/* /showcase/src/features/:splat 200
+          EOF
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: >-
+            pages deploy ./vuu-ui/showcase/.showcase/prod
+            --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT || 'vuu' }}
+            --branch=${{ github.ref_name }}
+            --commit-dirty=true
