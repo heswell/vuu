@@ -26,7 +26,13 @@
 
   // Podman inside the container needs /dev/fuse (fuse-overlayfs), /dev/net/tun (pasta networking) and relaxed seccomp/AppArmor plus unmasked /proc
   // to create user namespaces and mounts.
+  //
+  // --userns comes from VUU_DEVCONTAINER_USERNS on the host and is empty (the engine default)
+  // when unset. With rootless Podman on Linux set it to "keep-id", otherwise the host user maps
+  // to root in the container and 'vscode' can't write to the workspace (e.g. npm install fails).
+  // Docker doesn't support keep-id, so leave it unset there.
   "runArgs": [
+    "--userns=${localEnv:VUU_DEVCONTAINER_USERNS}",
     "--device=/dev/fuse",
     "--device=/dev/net/tun",
     "--cap-add=SYS_ADMIN",
@@ -40,11 +46,19 @@
   // Testcontainers (plugin/clickhouse-plugin tests) talks to Podman through its Docker-compatible
   // API socket. Ryuk (Testcontainers' reaper) is disabled as it needs to mount the socket into a
   // privileged container, which rootless nested Podman can't do.
+  //
+  // VUU_CERT_PATH / VUU_KEY_PATH point SimulMain at a self-signed cert valid for 127.0.0.1 and
+  // localhost, generated on start by generate-dev-certs.sh into a gitignored folder.
   "containerEnv": {
     "DOCKER_HOST": "unix:///home/vscode/.podman/podman.sock",
-    "TESTCONTAINERS_RYUK_DISABLED": "true"
+    "TESTCONTAINERS_RYUK_DISABLED": "true",
+    "VUU_CERT_PATH": "${containerWorkspaceFolder}/.devcontainer/certs/cert.pem",
+    "VUU_KEY_PATH": "${containerWorkspaceFolder}/.devcontainer/certs/key.pem"
   },
-  "postStartCommand": "/usr/local/bin/start-podman-service.sh",
+  "postStartCommand": {
+    "podman-service": "/usr/local/bin/start-podman-service.sh",
+    "dev-certs": "/usr/local/bin/generate-dev-certs.sh"
+  },
 
   "customizations": {
     // Configure properties specific to VS Code.

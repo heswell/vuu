@@ -18,6 +18,11 @@ reasoning behind it, see [`docs/rfc/devcontainer.md`](../docs/rfc/devcontainer.m
 #### Prerequisites
 1. Have `Docker` or `Podman` installed and running.
    - With Podman on macOS/Windows, the Podman machine must be running (`podman machine start`).
+   - With rootless Podman on Linux (no Podman machine), set `VUU_DEVCONTAINER_USERNS=keep-id` in
+     the environment your IDE is started from, for example in
+     `~/.config/environment.d/vuu.conf` (then log out and back in). Without it, your host user
+     maps to `root` in the container, and the `vscode` user can't write to the workspace. Leave
+     it unset with Docker, which doesn't support `keep-id`.
    - The host should have at least 2 CPUs, 12 GB memory and 32 GB storage available to the
      container engine (see `hostRequirements` in `devcontainer.json`).
 
@@ -72,6 +77,26 @@ cd example/python-integration/python && python start_server.py
 See [`example/python-integration/README.md`](../example/python-integration/README.md) for the
 full steps, including building the module first.
 
+#### HTTPS on 127.0.0.1 (example servers)
+
+Each time the container starts, it makes sure there's a self-signed TLS cert valid for
+`https://127.0.0.1`, `https://localhost` and `https://[::1]` at `.devcontainer/certs/cert.pem` and
+`.devcontainer/certs/key.pem` (gitignored). The container sets `VUU_CERT_PATH` and
+`VUU_KEY_PATH` to these files. When those are set, `SimulMain` uses them for its HTTPS (8443) and
+WSS (8090) endpoints instead of the `vuu.certPath`/`vuu.keyPath` defaults in `application.conf`.
+
+The cert is kept across restarts, so a browser exception or trust you've added for it stays valid.
+It's regenerated only if it's missing, expires within 30 days, or doesn't cover 127.0.0.1. To
+force a new one:
+
+```bash
+/usr/local/bin/generate-dev-certs.sh --force
+```
+
+Your browser won't trust the cert by default. Either accept the warning, or import
+`.devcontainer/certs/cert.pem` into your host's trust store (for example Keychain Access on macOS)
+and mark it as trusted.
+
 #### Containers inside the dev container
 
 Podman runs inside the dev container as the `vscode` user, so you can use `podman run`,
@@ -86,6 +111,10 @@ To make nested containers work, the dev container runs with extra privileges (se
 `devcontainer.json`). It is therefore less isolated from your host than a default container.
 
 #### Troubleshooting
+
+- **`EACCES` / `permission denied` writing to the workspace** (e.g. `npm install`) with rootless
+  Podman on Linux: `VUU_DEVCONTAINER_USERNS=keep-id` isn't set in your IDE's environment (see
+  [Prerequisites](#prerequisites)). Set it, restart the IDE and rebuild the container.
 
 - **`Previous attempts to find a Docker environment failed`** during a Maven build: the Podman
   API socket isn't running. Start it with:
