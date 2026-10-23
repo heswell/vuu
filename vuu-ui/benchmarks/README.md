@@ -21,6 +21,18 @@ await __vuuBench.mount(s, { width: 1200, height: 700, rowHeight: 20, renderBuffe
 await __vuuBench.run(s, { instrument: false, keepSamples: false });
 ```
 
+## Demo mode: comparing by eye
+
+`?demo` mounts a table with a continuous, seeded update feed and a bar showing live fps, frame p95, update-to-paint latency and updates/s, with controls for the feed. Use it to judge rendering changes the way users will see them.
+
+```bash
+BENCH_LABEL="main" npm run bench:build      # label shown in the page
+```
+
+Parameters: `rate` (updates/s, default 1000), `mode` (`steady`, or `burst` to copy the Vuu simulation's price feed), `cells` (`flash`, `plain`, `formatted`), `rows`, `cols`, `tickingRows`, `columnsPerUpdate`.
+
+To compare two builds, serve each and open them side by side in two Chrome windows on different sites, e.g. `http://localhost:3321/?demo` and `http://127.0.0.1:3322/?demo`, so each gets its own renderer process. Set DevTools → Performance → CPU 4x slowdown in each to approximate enterprise hardware. Close the demo pages before running benchmarks, they keep ticking.
+
 ## Comparing two builds (A/B)
 
 Build each version of the app into its own folder, then run both in one job. Iterations alternate between targets so that machine drift affects both equally.
@@ -64,6 +76,18 @@ Each scenario runs a **timing pass** (`BENCH_ITERATIONS` times, each in a fresh 
 | `dom.*`, `perUnit.*` | Instrumented pass: row mounts, element inserts, text and attribute changes, and per-row or per-update ratios |
 
 Update-to-paint latency works by writing the update batch's sequence number into the `seq` column of every row it updates, then watching for that value in the DOM.
+
+## Reading the numbers
+
+Lower is better for every key metric, but totals over a run need care. `cdp.scriptMs`, `cdp.taskMs`, `cdp.recalcStyleMs` and `cdp.layoutMs` are totals for the whole run, so they grow when the table renders more often. In the tick scenarios a faster build renders more often, batching fewer updates into each render, so its totals can rise even though each frame is cheaper and updates reach the screen sooner. Dividing by the number of updates does not help, a tick run emits the same number of updates whatever the build. Compare builds on per-frame figures instead:
+
+- `perUnit.scriptMsPerFrame`, `perUnit.styleMsPerFrame`, `perUnit.layoutMsPerFrame`: costs per rendered frame
+- `perUnit.taskMsPerFrame`: main-thread time per frame, all work included; above about 16.7ms the table cannot keep up with 60fps
+- `updateToPaintMs.*`, `frames.*`: what users experience
+
+The scroll scenarios render a fixed number of frames, so their totals are comparable between builds, but the per-frame figures read the same way everywhere. Use the totals to see where time goes within one build.
+
+Results from single nightly runs vary from run to run with the cloud runner; a change shows up reliably only when it persists across several nightly runs or in an interleaved A/B.
 
 ## Files
 

@@ -3,12 +3,43 @@ import { RoundingRule } from "@vuu-ui/vuu-table-types";
 const PUNCTUATION_STR = String.fromCharCode(8200);
 const DIGIT_STR = String.fromCharCode(8199);
 const DECIMALS_AUTO = -1;
+
+/**
+ * Formats with the default locale and options, the same output as
+ * Number.prototype.toLocaleString(), which sets up locale formatting on
+ * every call and is about 30x slower. The locale is read once, when this
+ * module loads, so a change to the default locale at runtime is not picked
+ * up until the page is reloaded.
+ */
+const integerFormat = new Intl.NumberFormat();
 const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER.toString();
 const MAX_INTEGER_DIGITS = MAX_SAFE_INTEGER.length;
 
 export const exceedsMaxSafeInteger = (value: string) =>
   value.length > MAX_INTEGER_DIGITS ||
   (value.length === MAX_INTEGER_DIGITS && value > MAX_SAFE_INTEGER);
+
+/**
+ * Round the digits of a fraction, half up, to the given number of decimals.
+ * Done on the digits rather than with toFixed, which misrounds values that
+ * are not exactly representable as a double (e.g 0.235 to 0.23).
+ * Returns the rounded digits and whether rounding carries into the integral.
+ */
+const roundFraction = (
+  fraction: string,
+  decimals: number,
+): [digits: string, carry: boolean] => {
+  const kept = fraction.slice(0, decimals);
+  if (fraction.length <= decimals || fraction[decimals] < "5") {
+    return [kept, false];
+  } else if (decimals === 0) {
+    return ["", true];
+  }
+  const rounded = (BigInt(kept) + 1n).toString().padStart(decimals, "0");
+  return rounded.length > decimals
+    ? [rounded.slice(1), true]
+    : [rounded, false];
+};
 
 const carriesIntoIntegral = (
   fraction: string,
@@ -18,7 +49,7 @@ const carriesIntoIntegral = (
   roundingRule === "round" &&
   decimals !== DECIMALS_AUTO &&
   fraction.length > decimals &&
-  parseFloat(`0.${fraction}`).toFixed(decimals).startsWith("1");
+  roundFraction(fraction, decimals)[1];
 
 const incrementIntegral = (integral: string) => {
   const negative = integral.startsWith("-");
@@ -126,7 +157,7 @@ export function roundDecimal(
     part1 === "-0"
       ? "-0"
       : useLocaleString
-        ? parseFloat(part1).toLocaleString()
+        ? integerFormat.format(parseFloat(part1))
         : parseFloat(part1).toString();
 
   if (align === Align.Left && alignOnDecimals) {
@@ -137,9 +168,7 @@ export function roundDecimal(
     fraction = part2;
   } else if (actualDecimals > decimals) {
     if (roundingRule === "round") {
-      fraction = parseFloat("0." + part2)
-        .toFixed(decimals)
-        .slice(2);
+      [fraction] = roundFraction(part2, decimals);
     } else {
       fraction = part2.slice(0, decimals);
     }
@@ -196,8 +225,8 @@ export function roundScaledDecimal(
         ? "-0"
         : useLocaleString
           ? exceedsMaxSafeInteger(value)
-            ? BigInt(part1).toLocaleString()
-            : parseFloat(part1).toLocaleString()
+            ? integerFormat.format(BigInt(part1))
+            : integerFormat.format(parseFloat(part1))
           : part1;
 
   if (align === Align.Left && alignOnDecimals) {
@@ -208,9 +237,7 @@ export function roundScaledDecimal(
     fraction = part2;
   } else if (actualDecimals > decimals) {
     if (roundingRule === "round") {
-      fraction = parseFloat("0." + part2)
-        .toFixed(decimals)
-        .slice(2);
+      [fraction] = roundFraction(part2, decimals);
     } else {
       fraction = part2.slice(0, decimals);
     }
